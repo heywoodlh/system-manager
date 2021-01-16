@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse,pathlib
 import configparser
-import distro,shutil
+import distro,shutil,sys
 import subprocess
 
 ### manager's config directory
@@ -12,25 +12,99 @@ default_manager_hosts = manager_dir + '/hosts'
 ## Argparse arguments
 parser = argparse.ArgumentParser(description="Interactive machine management tool")
 subparsers = parser.add_subparsers(help='commands', dest='command')
-parser.add_argument('-c', '--config', help='Config file', default=default_manager_conf)
-parser.add_argument('--hosts', help='Hosts file', default=default_manager_hosts)
-parser.add_argument('-t', '--target', help='Systems to target', nargs='+')
 
 ## Packages parser
 parser_packages = subparsers.add_parser('packages', help='manage packages')
-parser_packages.add_argument('-m', '--manager', help='package managers to target', nargs='+', metavar='MGR', default="all")
 parser_packages.add_argument('-i', '--install', help='packages to install', nargs='+', metavar='PKG')
-parser_packages.add_argument('-u', '--upgrade', help='packages to upgrade', nargs='+', metavar='PKG', default="all")
-parser_packages.add_argument('--uninstall', help='packages to uninstall', nargs='+', metavar='PKG', default="all")
+parser_packages.add_argument('-u', '--upgrade', help='packages to upgrade', nargs='+', metavar='PKG')
+parser_packages.add_argument('--uninstall', help='packages to uninstall', nargs='+', metavar='PKG')
 
 ## Services parser
-parser_services = subparsers.add_parser('services', help='manage packages')
-parser_services.add_argument('-s', '--service', help='service name(s) to target', nargs='+', metavar='NAME')
-parser_services.add_argument('--restart', help='restart service(s)', action="store_true")
-parser_services.add_argument('--stop', help='stop service(s)', action="store_true")
-parser_services.add_argument('--start', help='start service(s)', action="store_true")
+parser_services = subparsers.add_parser('services', help='manage services')
+parser_services.add_argument('--restart', help='service(s) to restart', nargs='+', metavar='NAME')
+parser_services.add_argument('--stop', help='service(s) to stop', nargs='+', metavar='NAME')
+parser_services.add_argument('--start', help='service(s) to start', nargs='+', metavar='NAME')
 
 args = parser.parse_args()
+
+def dialog():
+    desired_action = ""
+    
+    print('What would you like to manage:')
+    print('- packages')
+    print('- services')
+   
+    while not (desired_action == "packages" or desired_action == "services"):
+        desired_action = input("Selection [packages services]: ")
+
+    args.command = desired_action
+    response = ""
+    if desired_action == "packages":
+        while True:
+            print("Would you like to install packages?")
+            response = input('Selection [y/n]: ')
+            if response == 'y':
+                package_string = input('Enter the packages you would like installed (space separated): ')
+                args.install = package_string.split()
+            elif response == 'n':
+                break
+            else:
+                print("Please type in 'y' or 'n' for your response.")
+        while not (response == "y" or response == "n"):
+            print("Would you like to upgrade packages?")
+            response = input('Selection [y/n]: ')
+            if response == 'y':
+                package_string = input('Enter the packages you would like upgraded (space separated): ')
+                args.upgrade = package_string.split()
+            elif response == 'n':
+                break
+            else:
+                print("Please type in 'y' or 'n' for your response.")
+        while not (response == "y" or response == "n"):
+            print("Would you like to uninstall packages?")
+            response = input('Selection [y/n]: ')
+            if response == 'y':
+                package_string = input('Enter the packages you would like uninstalled (space separated): ')
+                args.uninstall = package_string.split()
+            elif response == 'n':
+                break
+            else:
+                print("Please type in 'y' or 'n' for your response.")
+
+    if desired_action == "services":
+        while loop:
+            print("Would you like to start services?")
+            response = input('Selection [y/n]: ')
+            if response == 'y':
+                service_string = input('Enter the services you would like started (space separated): ')
+                args.start = service_string.split()
+            elif response == 'n':
+                break
+            else:
+                print("Please type in 'y' or 'n' for your response.")
+        while loop:
+            print("Would you like to restart services?")
+            response = input('Selection [y/n]: ')
+            if response == 'y':
+                service_string = input('Enter the services you would like restarted (space separated): ')
+                args.restart = service_string.split()
+            elif response == 'n':
+                break
+            else:
+                print("Please type in 'y' or 'n' for your response.")
+        while loop:
+            print("Would you like to stop services?")
+            response = input('Selection [y/n]: ')
+            if response == 'y':
+                service_string = input('Enter the services you would like stopped (space separated): ')
+                args.stop = service_string.split()
+            elif response == 'n':
+                break
+            else:
+                print("Please type in 'y' or 'n' for your response.")
+
+
+
 
 def check_os():
     operating_system = sys.platform
@@ -43,8 +117,8 @@ def check_linux_distro():
     return(distribution)
 
 def check_bin(binary):
-    exec('global ' + binary + '_path')
-    exec(binary + '_path = shutil.which("' + binary + '")')
+    exec('global ' + binary + '_path', globals())
+    exec(binary + '_path = shutil.which("' + binary + '")', globals())
 
 def check_package_manager(operating_system):
     if operating_system == 'darwin':
@@ -80,7 +154,8 @@ def check_package_manager(operating_system):
         check_bin("nix")
         check_bin("brew")
 
-def packages(package_manager, package_name, action):
+def package_manage(package_manager, package_name, action):
+    cache_update = 'no'
     if package_manager == 'apk':
         cache_update_cmd = 'apk update'
         if action == 'uninstall':
@@ -163,72 +238,120 @@ def packages(package_manager, package_name, action):
         
         if action == 'upgrade':
             cache_update = 'yes'
-
+    
+    
     if cache_update == 'yes':
         subprocess.run(cache_update_cmd, shell=True)
 
-    if package_name == 'all':
-        package_name == ''
-
     subprocess.run(package_manager + ' ' + action + ' ' + package_name, shell=True)
+    
 
 
-def services(operating_system, action):
-    if linux == 'true':
-        service_manager = 'systemctl'
-    if operating_system == 'freebsd':
-        service_manager = '/etc/init.d'
-    if operating_system = 'darwin'
-        service_manager = 'brew services'
+
+
+def service_manage(operating_system, service_list, action):
+    for service in service_list:
+        if linux == 'true':
+            service_command = 'systemctl ' + action + ' ' + service
+        if operating_system == 'freebsd':
+            service_command = '/etc/rc.d/' + service + ' ' + action
+        if operating_system == 'darwin':
+            service_command = 'brew services ' + action + ' ' + service 
+
+        subprocess.run(service_command, shell=True)
+
+
 
 
 def main():
     operating_system = check_os()
+    global linux
     if operating_system == 'linux':
         linux = 'true'
         operating_system == check_linux_distro()
+    else:
+        linux = 'false'
 
     if operating_system == 'windows':
         print('Windows not supported!')
-    
+    else:
+        check_package_manager(operating_system)
+
+    if args.command == None:
+        dialog()
+
     if operating_system == 'linux' or operating_system == 'darwin' or operating_system == 'freebsd':
         if args.command == 'packages':
              if args.uninstall:
                  action = 'uninstall'
+                 packages = args.uninstall
              if args.install:
                  action = 'install'
-             if args.update: 
-                 action = 'update'
+                 packages = args.install
+             if args.upgrade: 
+                 action = 'upgrade'
+                 packages = args.upgrade
 
-             for package in args.package:
-                 if apk_path:
-                     packages("apk", package, action)
-                     installed = 'true'
-                 if apt_path:
-                     packages("apt", package, action)
-                     installed = 'true'
-                 if dnf_path:
-                     packages("dnf", package, action)
-                     installed = 'true'
-                 if pacman_path:
-                     packages("pacman", package, action)
-                     installed = 'true'
-                 if brew_path and installed != 'true':
-                     packages("brew", package, action)
-                     installed = 'true'
-                 if nix_path and installed != 'true':
-                     packages("nix", package, action)
-             if pkg_path:
-                 packages("pkg", action)
+             installed = 'false'
+             for package in packages:
+                 try:
+                     if apk_path:
+                         package_manage("apk", package, action)
+                         installed = 'true'
+                 except NameError:
+                     pass
+
+                 try:
+                     if apt_path:
+                         package_manage("apt", package, action)
+                         installed = 'true'
+                 except NameError:
+                     pass
+                 
+                 try:
+                     if dnf_path:
+                         package_manage("dnf", package, action)
+                         installed = 'true'
+                 except NameError:
+                     pass
+                 
+                 try:
+                     if pacman_path:
+                         package_manage("pacman", package, action)
+                         installed = 'true'
+                 except NameError:
+                     pass
+
+                 try:
+                     if pkg_path:
+                         package_manage("pkg", package, action)
+                         installed = 'true'
+                 except NameError:
+                     pass
+               
+                 try:
+                     if brew_path and installed == 'false':
+                         package_manage("brew", package, action)
+                         installed = 'true'
+                 except NameError:
+                     pass
+
+                 try:
+                     if nix_path and installed == 'false':
+                         package_manage("nix", package, action)
+                         installed = 'true'
+                 except NameError:
+                     pass
+
+                 installed = 'false'
              
         if args.command == 'services':
             if args.stop:
-                action = 'stop'
+                service_manage(operating_system, args.stop, 'stop')
             if args.start:
-                action = 'start'
+                service_manage(operating_system, args.start, 'start')
             if args.restart:
-                action = 'restart'
-            services(operating_system, action)
+                service_manage(operating_system, args.restart, 'restart')
 
 if __name__ == '__main__':
     main()
