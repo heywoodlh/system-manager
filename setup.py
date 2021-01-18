@@ -8,7 +8,7 @@ def readme():
 
 setup(name='manager',
       version='0.1.0',
-      description="Simple machine management",
+      description="Cross-platform unix-like systems administration wrapper",
       long_description=readme(),
       long_description_content_type='text/markdown',
       classifiers=[
