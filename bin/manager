@@ -27,84 +27,6 @@ parser_services.add_argument('--start', help='service(s) to start', nargs='+', m
 
 args = parser.parse_args()
 
-def dialog():
-    desired_action = ""
-    
-    print('What would you like to manage:')
-    print('- packages')
-    print('- services')
-   
-    while not (desired_action == "packages" or desired_action == "services"):
-        desired_action = input("Selection [packages services]: ")
-
-    args.command = desired_action
-    response = ""
-    if desired_action == "packages":
-        while True:
-            print("Would you like to install packages?")
-            response = input('Selection [y/n]: ')
-            if response == 'y':
-                package_string = input('Enter the packages you would like installed (space separated): ')
-                args.install = package_string.split()
-            elif response == 'n':
-                break
-            else:
-                print("Please type in 'y' or 'n' for your response.")
-        while not (response == "y" or response == "n"):
-            print("Would you like to upgrade packages?")
-            response = input('Selection [y/n]: ')
-            if response == 'y':
-                package_string = input('Enter the packages you would like upgraded (space separated): ')
-                args.upgrade = package_string.split()
-            elif response == 'n':
-                break
-            else:
-                print("Please type in 'y' or 'n' for your response.")
-        while not (response == "y" or response == "n"):
-            print("Would you like to uninstall packages?")
-            response = input('Selection [y/n]: ')
-            if response == 'y':
-                package_string = input('Enter the packages you would like uninstalled (space separated): ')
-                args.uninstall = package_string.split()
-            elif response == 'n':
-                break
-            else:
-                print("Please type in 'y' or 'n' for your response.")
-
-    if desired_action == "services":
-        while loop:
-            print("Would you like to start services?")
-            response = input('Selection [y/n]: ')
-            if response == 'y':
-                service_string = input('Enter the services you would like started (space separated): ')
-                args.start = service_string.split()
-            elif response == 'n':
-                break
-            else:
-                print("Please type in 'y' or 'n' for your response.")
-        while loop:
-            print("Would you like to restart services?")
-            response = input('Selection [y/n]: ')
-            if response == 'y':
-                service_string = input('Enter the services you would like restarted (space separated): ')
-                args.restart = service_string.split()
-            elif response == 'n':
-                break
-            else:
-                print("Please type in 'y' or 'n' for your response.")
-        while loop:
-            print("Would you like to stop services?")
-            response = input('Selection [y/n]: ')
-            if response == 'y':
-                service_string = input('Enter the services you would like stopped (space separated): ')
-                args.stop = service_string.split()
-            elif response == 'n':
-                break
-            else:
-                print("Please type in 'y' or 'n' for your response.")
-
-
-
 
 def check_os():
     operating_system = sys.platform
@@ -276,9 +198,6 @@ def main():
         print('Windows not supported!')
     else:
         check_package_manager(operating_system)
-
-    if args.command == None:
-        dialog()
 
     if operating_system == 'linux' or operating_system == 'darwin' or operating_system == 'freebsd':
         if args.command == 'packages':
