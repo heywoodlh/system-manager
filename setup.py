@@ -6,7 +6,7 @@ def readme():
     with open('README.md') as f:
         return f.read()
 
-setup(name='manager',
+setup(name='system-manager',
       version='0.1.0',
       description="Cross-platform unix-like systems administration wrapper",
       long_description=readme(),
@@ -14,12 +14,12 @@ setup(name='manager',
       classifiers=[
         "Intended Audience :: Developers",
         ],
-      url='https://github.com/heywoodlh/manager',
+      url='https://github.com/heywoodlh/system-manager',
       author='Spencer Heywood',
       author_email='l.spencer.heywood@protonmail.com',
       license='APACHE-2.0',
-      packages=['manager'],
-      scripts=['bin/manager'],
+      packages=['system-manager'],
+      scripts=['bin/system-manager'],
       python_requires='>3.5.2',
       install_requires=[
           'distro'
