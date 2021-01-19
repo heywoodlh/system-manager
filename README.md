@@ -6,7 +6,7 @@ Manager is a wrapper to easily perform administrative tasks on a machine in an i
 ### Supported Operating Systems:
 MacOS
 
-Linux (systemd only):
+Linux:
   - Alpine
   - Arch
   - Debian (and derivatives)

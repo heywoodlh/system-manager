@@ -17,7 +17,7 @@ subparsers = parser.add_subparsers(help='commands', dest='command')
 parser_packages = subparsers.add_parser('packages', help='manage packages')
 parser_packages.add_argument('-i', '--install', help='packages to install', nargs='+', metavar='PKG')
 parser_packages.add_argument('-u', '--upgrade', help='packages to upgrade', nargs='+', metavar='PKG')
-parser_packages.add_argument('--uninstall', help='packages to uninstall', nargs='+', metavar='PKG')
+parser_packages.add_argument('-r', '--remove', help='packages to uninstall', nargs='+', metavar='PKG')
 
 ## Services parser
 parser_services = subparsers.add_parser('services', help='manage services')
@@ -174,7 +174,11 @@ def package_manage(package_manager, package_name, action):
 def service_manage(operating_system, service_list, action):
     for service in service_list:
         if linux == 'true':
-            service_command = 'systemctl ' + action + ' ' + service
+            systemd = check_bin('systemctl')
+            if systemd != None:
+                service_command = 'systemctl ' + action + ' ' + service
+            else:
+                service_command = 'service ' + service + ' ' + action
         if operating_system == 'freebsd':
             service_command = '/etc/rc.d/' + service + ' ' + action
         if operating_system == 'darwin':
@@ -190,7 +194,7 @@ def main():
     global linux
     if operating_system == 'linux':
         linux = 'true'
-        operating_system == check_linux_distro()
+        operating_system = check_linux_distro()
     else:
         linux = 'false'
 
@@ -199,11 +203,11 @@ def main():
     else:
         check_package_manager(operating_system)
 
-    if operating_system == 'linux' or operating_system == 'darwin' or operating_system == 'freebsd':
+    if linux == 'true' or operating_system == 'darwin' or operating_system == 'freebsd':
         if args.command == 'packages':
-             if args.uninstall:
+             if args.remove:
                  action = 'uninstall'
-                 packages = args.uninstall
+                 packages = args.remove
              if args.install:
                  action = 'install'
                  packages = args.install
