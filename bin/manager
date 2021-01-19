@@ -47,7 +47,7 @@ def check_package_manager(operating_system):
         check_bin("brew")
         check_bin("nix")
 
-    if operating_system == 'freebsd':
+    if 'freebsd' in operating_system:
         global pkg_path
         pkg_path = '/usr/sbin/pkg'
         check_bin("nix")
@@ -179,8 +179,8 @@ def service_manage(operating_system, service_list, action):
                 service_command = 'systemctl ' + action + ' ' + service
             else:
                 service_command = 'service ' + service + ' ' + action
-        if operating_system == 'freebsd':
-            service_command = '/etc/rc.d/' + service + ' ' + action
+        if 'freebsd' in operating_system:
+            service_command = 'service ' + service + ' ' + action
         if operating_system == 'darwin':
             service_command = 'brew services ' + action + ' ' + service 
 
@@ -203,7 +203,7 @@ def main():
     else:
         check_package_manager(operating_system)
 
-    if linux == 'true' or operating_system == 'darwin' or operating_system == 'freebsd':
+    if linux == 'true' or operating_system == 'darwin' or 'freebsd' in operating_system:
         if args.command == 'packages':
              if args.remove:
                  action = 'uninstall'
