@@ -174,8 +174,8 @@ def package_manage(package_manager, package_name, action):
 def service_manage(operating_system, service_list, action):
     for service in service_list:
         if linux == 'true':
-            systemd = check_bin('systemctl')
-            if systemd != None:
+            check_bin('systemctl')
+            if systemctl_path:
                 service_command = 'systemctl ' + action + ' ' + service
             else:
                 service_command = 'service ' + service + ' ' + action
